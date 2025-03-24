@@ -33,14 +33,31 @@ resource "aws_security_group" "my_security_group" {
   description = "allows or denies ssh access"
   vpc_id      = local.vpc_id
 
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    cidr_blocks     = [
-        var.ssh_access ? "0.0.0.0/0" : "32.32.32.32/32"
-    ]
+ dynamic egress {
+  #If there are egress_rules use them, else don't produce any egress_rules
+  for_each = var.egress_rules != null ? var.egress_rules : []
+  iterator = rule
+  content {
+    from_port   = rule.value.from_port
+    to_port     = rule.value.to_port
+    protocol    = rule.value.protocol
+    cidr_blocks = rule.value.cidr_blocks
   }
+  
+ }
+  dynamic ingress {
+  #If there are egress_rules use them, else don't produce any egress_rules
+  for_each = var.ingress_rules != null ? var.ingress_rules : []
+  iterator = rule
+  content {
+    from_port   = rule.value.from_port
+    to_port     = rule.value.to_port
+    protocol    = rule.value.protocol
+    cidr_blocks = rule.value.cidr_blocks
+  }
+  
+ }
+
 }
 
 
